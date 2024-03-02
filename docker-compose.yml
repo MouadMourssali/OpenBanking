@@ -1,0 +1,35 @@
+services:
+  mysql1:
+    image: mysql:latest
+    container_name: Customer
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    networks:
+      - microservices-network
+
+  mysql2:
+    image: mysql:latest
+    container_name: Account
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    networks:
+      - microservices-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8080:80"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
