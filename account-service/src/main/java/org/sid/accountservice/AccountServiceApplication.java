@@ -23,51 +23,31 @@ public class AccountServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(AccountServiceApplication.class, args);
     }
-    @Bean
+    //@Bean
     CommandLineRunner start(BankAccountRepository bankAccountRepository, CustomerRestClient customerRestClient, TransactionRepository transactionRepository){
         return args -> {
             customerRestClient.allCustomers().forEach(customer -> {
                 // Créer et sauvegarder les comptes bancaires
-                BankAccount bankAccount1 = BankAccount.builder()
+                BankAccount bankAccount = BankAccount.builder()
                         .accountId(UUID.randomUUID().toString())
                         .currency("MAD")
                         .balance(Math.random() * 80000)
                         .createAt(LocalDate.now())
-                        .type(AccountType.CURRENT_ACCOUNT)
+                        .type(Math.random()>0.5?AccountType.SAVING_ACCOUNT:AccountType.CURRENT_ACCOUNT)
                         .customerId(customer.getId())
                         .build();
 
-                BankAccount bankAccount2 = BankAccount.builder()
-                        .accountId(UUID.randomUUID().toString())
-                        .currency("MAD")
-                        .balance(Math.random() * 68541)
-                        .createAt(LocalDate.now())
-                        .type(AccountType.SAVING_ACCOUNT)
-                        .customerId(customer.getId())
-                        .build();
-
-                bankAccountRepository.save(bankAccount1);
-                bankAccountRepository.save(bankAccount2);
+                bankAccountRepository.save(bankAccount);
 
                 // Créer et sauvegarder des transactions pour chaque compte bancaire
-                Transaction transaction1 = Transaction.builder()
-                        .accountId(bankAccount1.getAccountId())
+                Transaction transaction = Transaction.builder()
                         .amount(Math.random() * 10000)
                         .transactionTime(LocalDateTime.now())
-                        .description("Transaction pour le compte bancaire 1")
-                        .bankAccount(bankAccount1)
+                        .description("none")
+                        .bankAccount(bankAccount)
                         .build();
+                transactionRepository.save(transaction);
 
-                Transaction transaction2 = Transaction.builder()
-                        .accountId(bankAccount2.getAccountId())
-                        .amount(Math.random() * 5000)
-                        .transactionTime(LocalDateTime.now())
-                        .description("Transaction pour le compte bancaire 2")
-                        .bankAccount(bankAccount2)
-                        .build();
-
-                transactionRepository.save(transaction1);
-                transactionRepository.save(transaction2);
             });
         };
     }

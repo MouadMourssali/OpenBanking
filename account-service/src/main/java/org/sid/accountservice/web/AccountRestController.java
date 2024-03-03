@@ -1,6 +1,8 @@
 package org.sid.accountservice.web;
 
+import lombok.extern.slf4j.Slf4j;
 import org.sid.accountservice.clients.CustomerRestClient;
+import org.sid.accountservice.entities.AmountRequest;
 import org.sid.accountservice.entities.BankAccount;
 import org.sid.accountservice.model.Customer;
 import org.sid.accountservice.repositories.BankAccountRepository;
@@ -9,14 +11,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@RestController @Slf4j
 public class AccountRestController {
-    private RabbitTemplate rabbitTemplate;
+
     private BankAccountRepository bankAccountRepository;
     private CustomerRestClient customerRestClient;
 
     public AccountRestController(RabbitTemplate rabbitTemplate, BankAccountRepository bankAccountRepository, CustomerRestClient customerRestClient) {
-        this.rabbitTemplate = rabbitTemplate;
         this.bankAccountRepository = bankAccountRepository;
         this.customerRestClient = customerRestClient;
     }
@@ -37,5 +38,32 @@ public class AccountRestController {
         return bankAccount;
     }
 
+    @PostMapping("/credit/{accountId}")
+    public BankAccount creditAccount(@PathVariable String accountId, @RequestBody AmountRequest amountRequest) {
+        double amount = amountRequest.getAmount();
+
+        BankAccount bankAccount = bankAccountById(accountId);
+        bankAccount.setBalance(bankAccount.getBalance() + amount);
+
+        bankAccountRepository.save(bankAccount);
+        log.info("Account Credit : {}", accountId);
+
+        return bankAccount;
+    }
+
+
+    @PostMapping("/debit/{accountId}")
+    public BankAccount DebitAccount(@PathVariable String accountId, @RequestBody AmountRequest amountRequest) throws Exception {
+        BankAccount bankAccount = bankAccountById(accountId);
+
+        if (bankAccount.getBalance() < amountRequest.getAmount()) {
+            throw new Exception("Insufficient balance");
+        } else {
+            bankAccount.setBalance(bankAccount.getBalance() - amountRequest.getAmount());
+            bankAccountRepository.save(bankAccount);
+            log.info("Account Debit: {}", accountId);
+            return bankAccount;
+        }
+    }
 
 }

@@ -1,6 +1,7 @@
 package org.sid.accountservice.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sid.accountservice.enums.AccountType;
@@ -22,7 +23,7 @@ public class BankAccount {
     @Enumerated(EnumType.ORDINAL)
     private AccountType type;
     @Transient
-    @JsonBackReference
+    @JsonIgnore
     private Customer customer;
     private Long customerId;
     @OneToMany(mappedBy = "bankAccount")

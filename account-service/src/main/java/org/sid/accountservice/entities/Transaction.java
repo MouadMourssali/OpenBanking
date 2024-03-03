@@ -1,5 +1,6 @@
 package org.sid.accountservice.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,10 +16,10 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String accountId;
     private double amount;
     private LocalDateTime transactionTime;
     private String description;
     @ManyToOne
+    @JsonIgnore
     private BankAccount bankAccount;
 }
