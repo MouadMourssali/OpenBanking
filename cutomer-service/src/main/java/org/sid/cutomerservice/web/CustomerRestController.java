@@ -1,37 +1,39 @@
 package org.sid.cutomerservice.web;
+
+import org.sid.cutomerservice.dto.CustomerDto;
 import org.sid.cutomerservice.entities.Customer;
-import org.sid.cutomerservice.repositories.CustomerRepository;
-import org.sid.cutomerservice.services.CustomerService;
+import org.sid.cutomerservice.event.CustomerEvent;
+import org.sid.cutomerservice.services.CustomerServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class CustomerRestController {
-    private CustomerService customerService;
-    private CustomerRepository customerRepository;
+public class CustomerRestController  implements ApplicationEventPublisherAware {
+    @Autowired
+    private CustomerServiceImpl customerService;
 
-    public CustomerRestController(CustomerService customerService, CustomerRepository customerRepository) {
-        this.customerService = customerService;
-        this.customerRepository = customerRepository;
-    }
+    protected ApplicationEventPublisher eventPublisher;
+    private static final Logger LOG = LoggerFactory.getLogger(CustomerRestController.class);
 
-    private static final Logger LOGGER= LoggerFactory.getLogger(CustomerRestController.class);
-    @GetMapping("/customers")
-    public List<Customer>customerList(){
-        LOGGER.info("Customer find : {}");
-        return customerRepository.findAll();
+    @PostMapping("/customer")
+    public ResponseEntity<?>  addCustomer(@RequestBody Customer customer){
+        Customer savedCustomer = customerService.save(customer);
+        CustomerDto customerDto = this.customerService.getCustomer(savedCustomer.getId());
+        CustomerEvent customerEvent = new CustomerEvent(this, "CustomerEvent", customerDto);
+        eventPublisher.publishEvent(customerEvent);
+
+        return ResponseEntity.ok().body("The new customer has been saved with ID: "
+                + savedCustomer.getId());
     }
-    @GetMapping("/customers/{id}")
-    public Customer customerById(@PathVariable Long id){
-        LOGGER.info("Customer find : id = {}",id);
-        return customerRepository.findById(id).get();
-    }
-    @PostMapping("/addcustomer")
-    public Customer addCustomer(@RequestBody Customer customer){
-        LOGGER.info("Customer add : {}",customer);
-        return customerService.addCustomer(customer);
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 }
