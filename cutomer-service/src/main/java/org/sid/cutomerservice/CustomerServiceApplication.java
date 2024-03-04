@@ -16,27 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@ConfigurationProperties(prefix="customer")
 public class CustomerServiceApplication  {
 
     public static void main(String[] args) {
         SpringApplication.run(CustomerServiceApplication.class, args);
     }
 
-    @Autowired
-    private CustomerService customerService;
-    protected ApplicationEventPublisher eventPublisher;
-
-
-    @PostMapping("/customer")
-    public ResponseEntity<?> createAccount(@RequestBody Customer customer) {
-        Customer savedCustomer = this.customerService.save(customer);
-        CustomerDto customerDto = this.customerService.getCustomer(savedCustomer.getId());
-        CustomerEvent customerCreatedEvent = new CustomerEvent(this, "CustomerCreatedEvent", customerDto);
-        eventPublisher.publishEvent(customerCreatedEvent);
-
-        return ResponseEntity.ok().body("The new customer "
-                + savedCustomer.getId());
-    }
 
 }
